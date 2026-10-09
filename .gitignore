@@ -1,0 +1,30 @@
+# 敏感信息 —— 绝对不要提交
+.env
+.env.*
+!.env.example
+!.env.example.txt
+*.token
+mcp-config.json
+mcp.json
+
+# 本地快照与缓存
+data/cache/
+data/raw/
+*.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

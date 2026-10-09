@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>麦当劳营养红黑榜 · 蛋白质性价比计算器</title>
+<meta name="description" content="把麦当劳菜单的营养数据与价格 join 起来，算出每一块钱能买到多少克蛋白质。">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+background:#FAFAF8;color:#292726;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 64px}
+header{background:#DA291C;color:#fff;padding:44px 0 38px;margin-bottom:32px}
+header .wrap{padding-bottom:0}
+h1{font-size:30px;font-weight:600;letter-spacing:-.4px;margin-bottom:10px}
+.sub{font-size:15px;opacity:.92;font-weight:400}
+.meta{font-size:12.5px;opacity:.78;margin-top:16px;display:flex;flex-wrap:wrap;gap:16px}
+.notice{background:#FFF4CE;border:1px solid #F0C75E;border-radius:10px;padding:12px 16px;
+font-size:13px;color:#6B4E00;margin-bottom:28px}
+h2{font-size:19px;font-weight:600;margin:40px 0 6px;letter-spacing:-.2px}
+.h2note{font-size:13px;color:#6E6C68;margin-bottom:16px}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:16px 18px}
+.card .lab{font-size:12.5px;color:#6E6C68;margin-bottom:6px}
+.card .val{font-size:26px;font-weight:600;letter-spacing:-.5px;line-height:1.2}
+.card .val small{font-size:13px;font-weight:400;color:#6E6C68;margin-left:3px}
+.card .who{font-size:12.5px;color:#8A8781;margin-top:8px;padding-top:8px;border-top:1px dashed #E8E6E1}
+.ins{background:#fff;border:1px solid #E8E6E1;border-left:3px solid #FFC72C;border-radius:10px;
+padding:14px 18px;margin-bottom:10px;font-size:14px}
+.ins b{font-weight:600}
+.ins .tag{display:inline-block;font-size:11.5px;background:#FFF1D6;color:#8A5A00;
+border-radius:5px;padding:1px 7px;margin-right:8px;vertical-align:1px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #E8E6E1;
+border-radius:12px;overflow:hidden;font-size:13.5px}
+.tw{overflow-x:auto;margin-bottom:8px}
+th{background:#F5F3EF;text-align:right;font-weight:600;font-size:12.5px;color:#55534F;
+padding:11px 12px;white-space:nowrap;border-bottom:1px solid #E8E6E1}
+th:first-child,th:nth-child(2),th:nth-child(3){text-align:left}
+td{padding:11px 12px;border-bottom:1px solid #F2F0EC;text-align:right;white-space:nowrap}
+td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FDFCF9}
+.rk{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;
+border-radius:6px;background:#F0EEE9;color:#6E6C68;font-size:12px;font-weight:600}
+.rk1{background:#FFC72C;color:#292726}.rk2{background:#D9D7D1;color:#292726}.rk3{background:#E8B27E;color:#292726}
+.nm{font-weight:500}
+.cat{font-size:11.5px;color:#8A8781;background:#F5F3EF;border-radius:5px;padding:1px 6px}
+.bar{position:relative;min-width:64px}
+.bar i{position:absolute;left:0;top:50%;transform:translateY(-50%);height:16px;
+background:#FFC72C;border-radius:3px;opacity:.55}
+.bar span{position:relative;padding-left:2px;font-variant-numeric:tabular-nums}
+.good{color:#0F6E56;font-weight:500}.bad{color:#C0392B;font-weight:500}
+.warn{color:#B26A00;font-weight:500}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{background:#fff;border:1px solid #E8E6E1;border-radius:8px;padding:7px 14px;font-size:13px;
+cursor:pointer;color:#55534F;font-family:inherit}
+.tab.on{background:#292726;border-color:#292726;color:#fff}
+.pane{display:none}.pane.on{display:block}
+.method{background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:18px 20px;font-size:13.5px}
+.method h3{font-size:14px;font-weight:600;margin:14px 0 6px}
+.method h3:first-child{margin-top:0}
+.method code{background:#F5F3EF;border-radius:4px;padding:1.5px 6px;font-size:12.5px;
+font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.method ul{margin:6px 0 0 20px}
+.method li{margin-bottom:5px}
+footer{margin-top:40px;padding-top:20px;border-top:1px solid #E8E6E1;font-size:12.5px;color:#8A8781}
+@media(max-width:640px){h1{font-size:23px}.card .val{font-size:22px}}
+@media print{header{background:#DA291C!important;-webkit-print-color-adjust:exact}
+.tab{display:none}.pane{display:block!important;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>麦当劳营养红黑榜</h1>
+<div class="sub">把营养数据和价格 join 起来 —— 你花的每一块钱，到底买到了多少克蛋白质？</div>
+<div class="meta">
+<span>样本 20 款餐品</span>
+<span>营养库 160 款 · 本店在售单品 81 款 · 精确匹配 20 款</span>
+<span>数据源：麦当劳 MCP 实时数据 · 麦当劳南京新百餐厅</span>
+<span>生成于 2026-10-09 15:17</span>
+</div>
+</div></header>
+
+<div class="wrap">
+<div class="notice"><b>关于样本量</b>：麦当劳营养库覆盖全时段餐品（160 款，含早餐等），而门店菜单是当前时段在售（81 款单品，已排除 43 款套餐与周边）。两者按名称精确匹配后得到 20 款 —— 未匹配的多为当前时段未供应或限定款，属正常现象。为保证价格准确，程序宁可少收录也不错配。</div>
+
+<h2>先看结论</h2>
+<p class="h2note">以下数字全部由营养数据与价格实时计算得出，公式见文末「算法说明」。</p>
+<div class="grid g4"><div class="card"><div class="lab">蛋白质性价比之王</div><div class="val">1.17<small>g / 元</small></div><div class="who">双层吉士汉堡 · ¥23 · 蛋白 27g</div></div><div class="card"><div class="lab">蛋白密度之王</div><div class="val">8.8<small>g / 100kcal</small></div><div class="who">薄皮焦香V翅 · 每 100 大卡给 8.8g 蛋白</div></div><div class="card"><div class="lab">热量性价比之王</div><div class="val">22<small>kcal / 元</small></div><div class="who">麦香鸡 · ¥16 换 369 大卡</div></div><div class="card"><div class="lab">钠含量警戒</div><div class="val">1208<small>mg</small></div><div class="who">麦辣鸡腿汉堡 · 占每日上限 60%</div></div></div>
+
+<h2>三个反直觉发现</h2>
+<p class="h2note">这些是这份榜单最值得转发的部分。</p>
+<div class="ins"><span class="tag">同蛋白不同价</span><b>薄皮焦香V翅</b>（¥16）与 <b>麦香鱼</b>（¥22）蛋白质都是 17g 左右，价差却达 <b>¥6</b>，还多摄入 133 大卡 —— 多花的钱买的不是蛋白质。</div><div class="ins"><span class="tag">钠陷阱</span><b>麦辣鸡腿汉堡</b> 单品含钠 1208mg，相当于一天建议上限（2000mg）的 <b>60%</b>。</div><div class="ins"><span class="tag">综合最优</span>综合蛋白密度、性价比与钠负荷后，<b>薄皮焦香V翅</b> 以 85.4 分排名第一；垫底的是 <b>【美汁源】“黄金橙橙”</b>（23.9 分）。</div><div class="ins"><span class="tag">品类速查</span><b>炸鸡</b> 里最优是 <b>薄皮焦香V翅</b>（85.4 分）。</div>
+
+<h2>红榜 · 综合最优 Top 8</h2>
+<p class="h2note">综合蛋白密度、蛋白质性价比与钠负荷三项加权，满分 100。
+仅统计蛋白 ≥ 5g 的餐品 —— 咖啡、可乐等本就不是蛋白质来源，
+若按密度硬排会被极低热量饮品霸榜，结论失真。</p>
+<div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">薄皮焦香V翅</td><td><span class="cat">炸鸡</span></td><td>¥16</td><td>192</td><td>17g</td><td class="good">8.8</td><td>1.10</td><td class="warn">594mg</td><td><div class="bar"><i style="width:100%"></i><span>85.4</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">双层吉士汉堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥23</td><td>429</td><td>27g</td><td class="good">6.3</td><td>1.17</td><td class="bad">1017mg</td><td><div class="bar"><i style="width:79%"></i><span>67.4</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">纯牛奶（盒装）</td><td><span class="cat">饮品</span></td><td>¥11</td><td>129</td><td>7g</td><td class="">5.4</td><td>0.64</td><td class="">73mg</td><td><div class="bar"><i style="width:78%"></i><span>67.0</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">双层深海鳕鱼堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥24</td><td>485</td><td>28g</td><td class="">5.8</td><td>1.17</td><td class="bad">917mg</td><td><div class="bar"><i style="width:78%"></i><span>66.9</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">麦辣鸡翅-2块</td><td><span class="cat">炸鸡</span></td><td>¥14</td><td>224</td><td>13g</td><td class="">5.8</td><td>0.90</td><td class="warn">537mg</td><td><div class="bar"><i style="width:78%"></i><span>66.8</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">培根蔬萃双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥25</td><td>442</td><td>24g</td><td class="">5.4</td><td>0.96</td><td class="warn">728mg</td><td><div class="bar"><i style="width:74%"></i><span>63.1</span></div></td></tr><tr><td><span class="rk">7</span></td><td class="nm">不素之霸双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>493</td><td>28g</td><td class="">5.7</td><td>1.06</td><td class="bad">1012mg</td><td><div class="bar"><i style="width:72%"></i><span>61.2</span></div></td></tr><tr><td><span class="rk">8</span></td><td class="nm">巨无霸</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>513</td><td>27g</td><td class="">5.3</td><td>1.02</td><td class="bad">961mg</td><td><div class="bar"><i style="width:69%"></i><span>59.3</span></div></td></tr></tbody></table></div>
+
+<h2>黑榜 · 最该警惕 Top 6</h2>
+<p class="h2note">在蛋白 ≥ 5g 的餐品中，钠越高、蛋白密度越低，警惕指数越高。
+不是不能吃，是要知道代价。已排除红榜餐品，避免同一款两榜都出现。</p>
+<div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">麦辣鸡腿汉堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥22</td><td>485</td><td>24g</td><td class="">5.0</td><td>1.07</td><td class="bad">1208mg</td><td><div class="bar"><i style="width:63%"></i><span>54.2</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">培根安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥34</td><td>707</td><td>34g</td><td class="">4.8</td><td>0.99</td><td class="bad">1037mg</td><td><div class="bar"><i style="width:64%"></i><span>54.7</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">板烧鸡腿堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥24</td><td>391</td><td>23g</td><td class="">5.9</td><td>0.98</td><td class="bad">1041mg</td><td><div class="bar"><i style="width:69%"></i><span>59.2</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">芝士安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥32</td><td>696</td><td>32g</td><td class="">4.6</td><td>1.02</td><td class="bad">897mg</td><td><div class="bar"><i style="width:67%"></i><span>57.5</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">麦香鸡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥16</td><td>369</td><td>15g</td><td class="">4.1</td><td>0.91</td><td class="warn">731mg</td><td><div class="bar"><i style="width:65%"></i><span>55.4</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">麦香鱼</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥22</td><td>325</td><td>16g</td><td class="">4.9</td><td>0.73</td><td class="warn">556mg</td><td><div class="bar"><i style="width:67%"></i><span>57.4</span></div></td></tr></tbody></table></div>
+
+<h2>各品类最优解</h2>
+<p class="h2note">只想看某一类该点什么，看这里。</p>
+<div class="grid g2"><div class="card"><div class="lab">炸鸡 · 共 2 款</div><div class="val">薄皮焦香V翅</div><div class="who">¥16 · 192kcal · 蛋白 17g · 钠 594mg · 85.4 分</div></div><div class="card"><div class="lab">巨无霸 牛鱼肉堡 · 共 6 款</div><div class="val">双层吉士汉堡</div><div class="who">¥23 · 429kcal · 蛋白 27g · 钠 1017mg · 67.4 分</div></div><div class="card"><div class="lab">饮品 · 共 3 款</div><div class="val">纯牛奶（盒装）</div><div class="who">¥11 · 129kcal · 蛋白 7g · 钠 73mg · 67.0 分</div></div><div class="card"><div class="lab">麦咖啡™ · 共 2 款</div><div class="val">浓缩咖啡</div><div class="who">¥15 · 13kcal · 蛋白 1g · 钠 0mg · 61.8 分</div></div><div class="card"><div class="lab">鸡肉汉堡 /卷 · 共 3 款</div><div class="val">板烧鸡腿堡</div><div class="who">¥24 · 391kcal · 蛋白 23g · 钠 1041mg · 59.2 分</div></div><div class="card"><div class="lab">安格斯MAX 厚牛堡 · 共 2 款</div><div class="val">芝士安格斯厚牛堡</div><div class="who">¥32 · 696kcal · 蛋白 32g · 钠 897mg · 57.5 分</div></div><div class="card"><div class="lab">小食甜品 /其他 · 共 2 款</div><div class="val">圆筒冰淇淋</div><div class="who">¥5 · 93kcal · 蛋白 2g · 钠 36mg · 45.9 分</div></div></div>
+
+<h2>四个专项榜</h2>
+<p class="h2note">同一个餐品在不同目标下排名完全不同，切换查看。</p>
+<div class="tabs" data-group="g1"><button class="tab on" data-group="g1" data-target="p-pvalue">蛋白质性价比</button><button class="tab" data-group="g1" data-target="p-pdensity">蛋白密度</button><button class="tab" data-group="g1" data-target="p-kvalue">热量性价比</button><button class="tab" data-group="g1" data-target="p-sodium">钠警戒</button></div><div class="pane on" id="p-pvalue" data-group="g1"><p class="h2note">每元能买到多少克蛋白质（仅统计蛋白 ≥ 5g 的餐品）</p><div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">双层吉士汉堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥23</td><td>429</td><td>27g</td><td class="good">6.3</td><td>1.17</td><td class="bad">1017mg</td><td><div class="bar"><i style="width:79%"></i><span>67.4</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">双层深海鳕鱼堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥24</td><td>485</td><td>28g</td><td class="">5.8</td><td>1.17</td><td class="bad">917mg</td><td><div class="bar"><i style="width:78%"></i><span>66.9</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">薄皮焦香V翅</td><td><span class="cat">炸鸡</span></td><td>¥16</td><td>192</td><td>17g</td><td class="good">8.8</td><td>1.10</td><td class="warn">594mg</td><td><div class="bar"><i style="width:100%"></i><span>85.4</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">麦辣鸡腿汉堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥22</td><td>485</td><td>24g</td><td class="">5.0</td><td>1.07</td><td class="bad">1208mg</td><td><div class="bar"><i style="width:63%"></i><span>54.2</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">不素之霸双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>493</td><td>28g</td><td class="">5.7</td><td>1.06</td><td class="bad">1012mg</td><td><div class="bar"><i style="width:72%"></i><span>61.2</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">巨无霸</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>513</td><td>27g</td><td class="">5.3</td><td>1.02</td><td class="bad">961mg</td><td><div class="bar"><i style="width:69%"></i><span>59.3</span></div></td></tr><tr><td><span class="rk">7</span></td><td class="nm">芝士安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥32</td><td>696</td><td>32g</td><td class="">4.6</td><td>1.02</td><td class="bad">897mg</td><td><div class="bar"><i style="width:67%"></i><span>57.5</span></div></td></tr><tr><td><span class="rk">8</span></td><td class="nm">培根安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥34</td><td>707</td><td>34g</td><td class="">4.8</td><td>0.99</td><td class="bad">1037mg</td><td><div class="bar"><i style="width:64%"></i><span>54.7</span></div></td></tr></tbody></table></div></div><div class="pane" id="p-pdensity" data-group="g1"><p class="h2note">每 100 大卡含多少克蛋白质（仅统计蛋白 ≥ 5g 的餐品）</p><div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">薄皮焦香V翅</td><td><span class="cat">炸鸡</span></td><td>¥16</td><td>192</td><td>17g</td><td class="good">8.8</td><td>1.10</td><td class="warn">594mg</td><td><div class="bar"><i style="width:100%"></i><span>85.4</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">双层吉士汉堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥23</td><td>429</td><td>27g</td><td class="good">6.3</td><td>1.17</td><td class="bad">1017mg</td><td><div class="bar"><i style="width:79%"></i><span>67.4</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">板烧鸡腿堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥24</td><td>391</td><td>23g</td><td class="">5.9</td><td>0.98</td><td class="bad">1041mg</td><td><div class="bar"><i style="width:69%"></i><span>59.2</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">麦辣鸡翅-2块</td><td><span class="cat">炸鸡</span></td><td>¥14</td><td>224</td><td>13g</td><td class="">5.8</td><td>0.90</td><td class="warn">537mg</td><td><div class="bar"><i style="width:78%"></i><span>66.8</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">双层深海鳕鱼堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥24</td><td>485</td><td>28g</td><td class="">5.8</td><td>1.17</td><td class="bad">917mg</td><td><div class="bar"><i style="width:78%"></i><span>66.9</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">不素之霸双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>493</td><td>28g</td><td class="">5.7</td><td>1.06</td><td class="bad">1012mg</td><td><div class="bar"><i style="width:72%"></i><span>61.2</span></div></td></tr><tr><td><span class="rk">7</span></td><td class="nm">纯牛奶（盒装）</td><td><span class="cat">饮品</span></td><td>¥11</td><td>129</td><td>7g</td><td class="">5.4</td><td>0.64</td><td class="">73mg</td><td><div class="bar"><i style="width:78%"></i><span>67.0</span></div></td></tr><tr><td><span class="rk">8</span></td><td class="nm">培根蔬萃双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥25</td><td>442</td><td>24g</td><td class="">5.4</td><td>0.96</td><td class="warn">728mg</td><td><div class="bar"><i style="width:74%"></i><span>63.1</span></div></td></tr></tbody></table></div></div><div class="pane" id="p-kvalue" data-group="g1"><p class="h2note">每元能买到多少大卡</p><div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">麦香鸡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥16</td><td>369</td><td>15g</td><td class="">4.1</td><td>0.91</td><td class="warn">731mg</td><td><div class="bar"><i style="width:65%"></i><span>55.4</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">芝士安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥32</td><td>696</td><td>32g</td><td class="">4.6</td><td>1.02</td><td class="bad">897mg</td><td><div class="bar"><i style="width:67%"></i><span>57.5</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">麦辣鸡腿汉堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥22</td><td>485</td><td>24g</td><td class="">5.0</td><td>1.07</td><td class="bad">1208mg</td><td><div class="bar"><i style="width:63%"></i><span>54.2</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">培根安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥34</td><td>707</td><td>34g</td><td class="">4.8</td><td>0.99</td><td class="bad">1037mg</td><td><div class="bar"><i style="width:64%"></i><span>54.7</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">双层深海鳕鱼堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥24</td><td>485</td><td>28g</td><td class="">5.8</td><td>1.17</td><td class="bad">917mg</td><td><div class="bar"><i style="width:78%"></i><span>66.9</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">巨无霸</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>513</td><td>27g</td><td class="">5.3</td><td>1.02</td><td class="bad">961mg</td><td><div class="bar"><i style="width:69%"></i><span>59.3</span></div></td></tr><tr><td><span class="rk">7</span></td><td class="nm">双层吉士汉堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥23</td><td>429</td><td>27g</td><td class="good">6.3</td><td>1.17</td><td class="bad">1017mg</td><td><div class="bar"><i style="width:79%"></i><span>67.4</span></div></td></tr><tr><td><span class="rk">8</span></td><td class="nm">不素之霸双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>493</td><td>28g</td><td class="">5.7</td><td>1.06</td><td class="bad">1012mg</td><td><div class="bar"><i style="width:72%"></i><span>61.2</span></div></td></tr></tbody></table></div></div><div class="pane" id="p-sodium" data-group="g1"><p class="h2note">单品含钠越高越靠前</p><div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">麦辣鸡腿汉堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥22</td><td>485</td><td>24g</td><td class="">5.0</td><td>1.07</td><td class="bad">1208mg</td><td><div class="bar"><i style="width:63%"></i><span>54.2</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">板烧鸡腿堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥24</td><td>391</td><td>23g</td><td class="">5.9</td><td>0.98</td><td class="bad">1041mg</td><td><div class="bar"><i style="width:69%"></i><span>59.2</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">培根安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥34</td><td>707</td><td>34g</td><td class="">4.8</td><td>0.99</td><td class="bad">1037mg</td><td><div class="bar"><i style="width:64%"></i><span>54.7</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">双层吉士汉堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥23</td><td>429</td><td>27g</td><td class="good">6.3</td><td>1.17</td><td class="bad">1017mg</td><td><div class="bar"><i style="width:79%"></i><span>67.4</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">不素之霸双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>493</td><td>28g</td><td class="">5.7</td><td>1.06</td><td class="bad">1012mg</td><td><div class="bar"><i style="width:72%"></i><span>61.2</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">巨无霸</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>513</td><td>27g</td><td class="">5.3</td><td>1.02</td><td class="bad">961mg</td><td><div class="bar"><i style="width:69%"></i><span>59.3</span></div></td></tr><tr><td><span class="rk">7</span></td><td class="nm">双层深海鳕鱼堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥24</td><td>485</td><td>28g</td><td class="">5.8</td><td>1.17</td><td class="bad">917mg</td><td><div class="bar"><i style="width:78%"></i><span>66.9</span></div></td></tr><tr><td><span class="rk">8</span></td><td class="nm">芝士安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥32</td><td>696</td><td>32g</td><td class="">4.6</td><td>1.02</td><td class="bad">897mg</td><td><div class="bar"><i style="width:67%"></i><span>57.5</span></div></td></tr></tbody></table></div></div>
+
+<h2>全量数据</h2>
+<p class="h2note">按综合分降序，共 20 款。</p>
+<div class="tw"><table><thead><tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th><th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th><th>综合分</th></tr></thead><tbody><tr><td><span class="rk rk1">1</span></td><td class="nm">薄皮焦香V翅</td><td><span class="cat">炸鸡</span></td><td>¥16</td><td>192</td><td>17g</td><td class="good">8.8</td><td>1.10</td><td class="warn">594mg</td><td><div class="bar"><i style="width:100%"></i><span>85.4</span></div></td></tr><tr><td><span class="rk rk2">2</span></td><td class="nm">双层吉士汉堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥23</td><td>429</td><td>27g</td><td class="good">6.3</td><td>1.17</td><td class="bad">1017mg</td><td><div class="bar"><i style="width:79%"></i><span>67.4</span></div></td></tr><tr><td><span class="rk rk3">3</span></td><td class="nm">纯牛奶（盒装）</td><td><span class="cat">饮品</span></td><td>¥11</td><td>129</td><td>7g</td><td class="">5.4</td><td>0.64</td><td class="">73mg</td><td><div class="bar"><i style="width:78%"></i><span>67.0</span></div></td></tr><tr><td><span class="rk">4</span></td><td class="nm">双层深海鳕鱼堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥24</td><td>485</td><td>28g</td><td class="">5.8</td><td>1.17</td><td class="bad">917mg</td><td><div class="bar"><i style="width:78%"></i><span>66.9</span></div></td></tr><tr><td><span class="rk">5</span></td><td class="nm">麦辣鸡翅-2块</td><td><span class="cat">炸鸡</span></td><td>¥14</td><td>224</td><td>13g</td><td class="">5.8</td><td>0.90</td><td class="warn">537mg</td><td><div class="bar"><i style="width:78%"></i><span>66.8</span></div></td></tr><tr><td><span class="rk">6</span></td><td class="nm">培根蔬萃双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥25</td><td>442</td><td>24g</td><td class="">5.4</td><td>0.96</td><td class="warn">728mg</td><td><div class="bar"><i style="width:74%"></i><span>63.1</span></div></td></tr><tr><td><span class="rk">7</span></td><td class="nm">浓缩咖啡</td><td><span class="cat">麦咖啡™</span></td><td>¥15</td><td>13</td><td>1g</td><td class="good">7.7</td><td>0.07</td><td class="">0mg</td><td><div class="bar"><i style="width:72%"></i><span>61.8</span></div></td></tr><tr><td><span class="rk">8</span></td><td class="nm">不素之霸双层牛堡</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>493</td><td>28g</td><td class="">5.7</td><td>1.06</td><td class="bad">1012mg</td><td><div class="bar"><i style="width:72%"></i><span>61.2</span></div></td></tr><tr><td><span class="rk">9</span></td><td class="nm">巨无霸</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥26</td><td>513</td><td>27g</td><td class="">5.3</td><td>1.02</td><td class="bad">961mg</td><td><div class="bar"><i style="width:69%"></i><span>59.3</span></div></td></tr><tr><td><span class="rk">10</span></td><td class="nm">板烧鸡腿堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥24</td><td>391</td><td>23g</td><td class="">5.9</td><td>0.98</td><td class="bad">1041mg</td><td><div class="bar"><i style="width:69%"></i><span>59.2</span></div></td></tr><tr><td><span class="rk">11</span></td><td class="nm">芝士安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥32</td><td>696</td><td>32g</td><td class="">4.6</td><td>1.02</td><td class="bad">897mg</td><td><div class="bar"><i style="width:67%"></i><span>57.5</span></div></td></tr><tr><td><span class="rk">12</span></td><td class="nm">麦香鱼</td><td><span class="cat">巨无霸 牛鱼肉堡</span></td><td>¥22</td><td>325</td><td>16g</td><td class="">4.9</td><td>0.73</td><td class="warn">556mg</td><td><div class="bar"><i style="width:67%"></i><span>57.4</span></div></td></tr><tr><td><span class="rk">13</span></td><td class="nm">麦香鸡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥16</td><td>369</td><td>15g</td><td class="">4.1</td><td>0.91</td><td class="warn">731mg</td><td><div class="bar"><i style="width:65%"></i><span>55.4</span></div></td></tr><tr><td><span class="rk">14</span></td><td class="nm">培根安格斯厚牛堡</td><td><span class="cat">安格斯MAX 厚牛堡</span></td><td>¥34</td><td>707</td><td>34g</td><td class="">4.8</td><td>0.99</td><td class="bad">1037mg</td><td><div class="bar"><i style="width:64%"></i><span>54.7</span></div></td></tr><tr><td><span class="rk">15</span></td><td class="nm">麦辣鸡腿汉堡</td><td><span class="cat">鸡肉汉堡 /卷</span></td><td>¥22</td><td>485</td><td>24g</td><td class="">5.0</td><td>1.07</td><td class="bad">1208mg</td><td><div class="bar"><i style="width:63%"></i><span>54.2</span></div></td></tr><tr><td><span class="rk">16</span></td><td class="nm">圆筒冰淇淋</td><td><span class="cat">小食甜品 /其他</span></td><td>¥5</td><td>93</td><td>2g</td><td class="warn">2.1</td><td>0.40</td><td class="">36mg</td><td><div class="bar"><i style="width:54%"></i><span>45.9</span></div></td></tr><tr><td><span class="rk">17</span></td><td class="nm">咖啡阿芙佳朵</td><td><span class="cat">麦咖啡™</span></td><td>¥15</td><td>139</td><td>4g</td><td class="warn">2.9</td><td>0.27</td><td class="">49mg</td><td><div class="bar"><i style="width:53%"></i><span>45.0</span></div></td></tr><tr><td><span class="rk">18</span></td><td class="nm">锡兰红茶</td><td><span class="cat">饮品</span></td><td>¥10</td><td>2</td><td>0g</td><td class="warn">0.0</td><td>0.00</td><td class="">0mg</td><td><div class="bar"><i style="width:29%"></i><span>25.0</span></div></td></tr><tr><td><span class="rk">19</span></td><td class="nm">苹果片</td><td><span class="cat">小食甜品 /其他</span></td><td>¥7</td><td>32</td><td>0g</td><td class="warn">0.0</td><td>0.00</td><td class="">0mg</td><td><div class="bar"><i style="width:29%"></i><span>25.0</span></div></td></tr><tr><td><span class="rk">20</span></td><td class="nm">【美汁源】“黄金橙橙”</td><td><span class="cat">饮品</span></td><td>¥13</td><td>165</td><td>0g</td><td class="warn">0.0</td><td>0.00</td><td class="">53mg</td><td><div class="bar"><i style="width:28%"></i><span>23.9</span></div></td></tr></tbody></table></div>
+
+<h2>算法说明</h2>
+<div class="method">
+<h3>四项核心指标</h3>
+<ul>
+<li><code>蛋白质性价比</code> = 蛋白质(g) ÷ 价格(元) —— 健身人群视角</li>
+<li><code>蛋白密度</code> = 蛋白质(g) ÷ 能量(kcal) × 100 —— 减脂期视角</li>
+<li><code>热量性价比</code> = 能量(kcal) ÷ 价格(元) —— 预算有限视角</li>
+<li><code>钠负荷</code> = 钠(mg) ÷ 2000mg —— 《中国居民膳食指南》每日上限</li>
+</ul>
+<h3>综合评分</h3>
+<p><code>score = 0.40 × 归一(蛋白密度) + 0.35 × 归一(蛋白质性价比) + 0.25 × (1 − 归一(钠))</code></p>
+<p>归一化采用当前数据集内的 min-max，因此评分是<b>相对排序</b>而非绝对评级，钠为惩罚项。</p>
+<h3>两项防失真约束</h3>
+<ul>
+<li>蛋白类榜单设准入门槛<code>蛋白 ≥ 5g</code>。否则 13kcal 的浓缩咖啡
+（蛋白 1g）密度可达 7.7，会霸榜 —— 它本就不是蛋白质来源。</li>
+<li>套餐与周边（<code>三件套/四件套/套餐/玩具</code>等）已排除。
+它们的营养数据是单品口径，用套餐价去比会严重低估单价。</li>
+</ul>
+<h3>为什么必须用 MCP</h3>
+<p>营养数据里没有价格，菜单里没有营养成分。只有把 <code>list-nutrition-foods</code> 与
+<code>query-meals</code> 两份数据 join 起来，才能算出「每元蛋白质」——这是单看任何一份数据都得不出的结论。</p>
+</div>
+
+<footer>
+本页由开源项目 <b>mcd-protein-value</b> 自动生成，为麦当劳程序员节创意开发大赛参赛作品，
+<b>非麦当劳官方产品</b>。数据仅供参考，不构成医疗或营养专业建议；
+餐品信息、价格及供应状态以麦当劳官方渠道的实时结果为准。
+</footer>
+</div>
+<script>
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    var g=t.closest('.tabs').dataset.group;
+    document.querySelectorAll('.tab[data-group="'+g+'"]').forEach(function(x){x.classList.remove('on')});
+    document.querySelectorAll('.pane[data-group="'+g+'"]').forEach(function(x){x.classList.remove('on')});
+    t.classList.add('on');
+    var p=document.getElementById(t.dataset.target);
+    if(p)p.classList.add('on');
+  });
+});
+</script>
+</body>
+</html>
