@@ -194,6 +194,7 @@ python run.py --replay data/snapshot/nutrition_20261009_145325.json \
 │   ├── rank.py                指标计算 + 榜单排序
 │   ├── report.py              完整榜单报告（report.html）
 │   ├── compare.py             价格错觉对比器（index.html，纯前端交互）
+│   ├── icons.py               手绘品类图标（内联 SVG 雪碧，零外部请求）
 │   └── demo_data.py           内置示例数据（无 Token 时跑通链路）
 ├── scripts/
 │   ├── check_mcp.py           连通性自检
@@ -211,6 +212,8 @@ python run.py --replay data/snapshot/nutrition_20261009_145325.json \
 - 只调用 `query-nearby-stores`、`list-nutrition-foods`、`query-meals` 三个**只读** Tool，不下单、不领券、不消耗积分。
 - 仅访问用户本人授权的数据，不读取他人信息。
 - 仓库不含任何真实 Token，配置仅用环境变量占位符。
+- **餐品图标为本项目手绘 SVG**（`src/icons.py`），未使用麦当劳官方餐品图 ——
+  接口返回图片 URL 不等于授权在衍生作品中分发，且外链会破坏「自包含单文件」这条底线。
 
 本项目为**麦当劳程序员节创意开发大赛参赛作品**，由参赛者独立开发，**非麦当劳官方产品**。
 输出仅供参考，不构成医疗或营养专业建议；餐品信息、价格及供应状态以麦当劳官方渠道的实时结果为准。

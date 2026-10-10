@@ -23,6 +23,8 @@ import html
 import json
 from datetime import datetime, timezone, timedelta
 
+import icons
+
 CST = timezone(timedelta(hours=8))
 REPO_URL = "https://github.com/york0307/mcd-protein-value"
 
@@ -50,6 +52,13 @@ font-size:15px;color:#55534F;font-family:inherit}
 .qb{background:#fff;border:1px solid #E8E6E1;border-radius:8px;padding:7px 13px;font-size:13px;
 cursor:pointer;color:#55534F;font-family:inherit}
 .qb:hover{background:#F5F3EF}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:14px;
+border-top:1px dashed #EDEBE6}
+.lg{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#6E6C68;
+background:#F7F5F1;border-radius:20px;padding:3px 9px 3px 5px}
+.lg b{font-weight:600;color:#292726;font-variant-numeric:tabular-nums}
+.ic{width:17px;height:17px;flex:none;display:inline-block;vertical-align:-3px}
+.lg .ic{width:15px;height:15px;vertical-align:0}
 .verdict{background:#292726;color:#fff;border-radius:12px;padding:20px 22px;margin-bottom:18px}
 .verdict .lead{font-size:17px;font-weight:600;letter-spacing:-.2px;line-height:1.5}
 .verdict .why{font-size:13.5px;opacity:.82;margin-top:10px}
@@ -57,7 +66,7 @@ cursor:pointer;color:#55534F;font-family:inherit}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
 .side{background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:16px 18px}
 .side.hi{border-color:#FFC72C;border-width:2px}
-.side .nm{font-size:15px;font-weight:600;margin-bottom:2px}
+.side .nm{font-size:15px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:7px}
 .side .ct{font-size:11.5px;color:#8A8781;background:#F5F3EF;border-radius:5px;padding:1px 6px;
 display:inline-block;margin-bottom:12px}
 .kv{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;
@@ -114,6 +123,9 @@ function pr(v){ return Math.round(v); }
 // 金额：整数不带小数，有零头才保留一位
 function money(v){ var r = Math.round(v*10)/10; return (r % 1 === 0) ? String(Math.round(r)) : r.toFixed(1); }
 
+// 图标引用的是页面顶部注入的 SVG symbol 雪碧，不发起任何外部请求。
+function icx(id){ return '<svg class="ic" aria-hidden="true"><use href="#ic-'+id+'"/></svg>'; }
+
 function kv(label, va, vb, better){
   var ca = '', cb = '';
   if (better === 'high') { ca = (va>vb?'better':(va<vb?'worse':'')); cb = (vb>va?'better':(vb<va?'worse':'')); }
@@ -163,7 +175,7 @@ function render(){
   // 若用 it 取数，B 侧会渲染成「B / B」。
   function side(it, hi){
     return '<div class="side'+(hi?' hi':'')+'">' +
-      '<div class="nm">'+it.name+'</div><div><span class="ct">'+it.category+'</span></div>' +
+      '<div class="nm">'+icx(it.ic)+'<span>'+it.name+'</span></div><div><span class="ct">'+it.category+'</span></div>' +
       kv('价格', '¥'+pr(a.price), '¥'+pr(b.price), 'low') +
       kv('蛋白质', n1(a.protein)+'g', n1(b.protein)+'g', 'high') +
       kv('热量', n0(a.kcal), n0(b.kcal), 'low') +
@@ -202,6 +214,7 @@ TEMPLATE = """<!DOCTYPE html>
 <style>__CSS__</style>
 </head>
 <body>
+__SPRITE__
 <header><div class="wrap">
 <h1>麦当劳价格错觉对比器</h1>
 <div class="sub">选两款餐品 —— 贵的那款，你多花的钱到底买到了什么？</div>
@@ -225,6 +238,7 @@ TEMPLATE = """<!DOCTYPE html>
 <button class="qb" id="rnd">随机来一对</button>
 <a class="qb" href="report.html" style="text-decoration:none;line-height:1.9">看完整榜单报告 →</a>
 </div>
+__LEGEND__
 </div>
 
 <div class="verdict" id="verdict"></div>
@@ -282,11 +296,28 @@ def _preset(rankings: dict) -> tuple[int, int]:
     return idx.get(best[1], 0), idx.get(best[2], min(1, len(items) - 1))
 
 
+def _legend(rankings: dict) -> str:
+    """品类图例 —— 让图标有解释，顺带交代 20 款的构成。"""
+    order: dict[str, int] = {}
+    for x in rankings["all"]:
+        c = x.get("category") or "未分类"
+        order[c] = order.get(c, 0) + 1
+    chips = "".join(
+        f'<span class="lg">{icons.for_category(c)}'
+        f'<span>{html.escape(str(c))}</span><b>{n}</b></span>'
+        for c, n in sorted(order.items(), key=lambda kv: -kv[1]))
+    return f'<div class="legend">{chips}</div>'
+
+
 def render_compare(rankings: dict, meta: dict) -> str:
     items = rankings["all"]
     keep = ("name", "category", "price", "kcal", "protein",
             "sodium", "protein_per_yuan", "protein_density", "score")
-    slim = [{k: x.get(k, 0) for k in keep} for x in items]
+    slim = []
+    for x in items:
+        row = {k: x.get(k, 0) for k in keep}
+        row["ic"] = icons.icon_id(x.get("category"))
+        slim.append(row)
 
     ia, ib = _preset(rankings)
     payload = {"items": slim, "preset": [ia, ib]}
@@ -294,13 +325,16 @@ def render_compare(rankings: dict, meta: dict) -> str:
     rows = []
     for i, r in enumerate(rankings["red_list"], 1):
         rows.append(
-            f"<tr><td>{i}</td><td>{html.escape(str(r['name']))}</td>"
+            f"<tr><td>{i}</td>"
+            f'<td>{icons.for_category(r.get("category"))} {html.escape(str(r["name"]))}</td>'
             f"<td>¥{r['price']:.0f}</td><td>{r['kcal']:.0f}</td><td>{r['protein']:.0f}g</td>"
             f"<td>{r['protein_density']:.1f}</td><td>{r['protein_per_yuan']:.2f}</td>"
             f"<td>{r['sodium']:.0f}mg</td></tr>")
 
     now = datetime.now(CST).strftime("%Y-%m-%d %H:%M")
     return (TEMPLATE
+            .replace("__SPRITE__", icons.sprite())
+            .replace("__LEGEND__", _legend(rankings))
             .replace("__CSS__", CSS)
             .replace("__JS__", JS)
             .replace("__DATA__", json.dumps(payload, ensure_ascii=False))

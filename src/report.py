@@ -10,6 +10,8 @@ from __future__ import annotations
 import html
 from datetime import datetime, timezone, timedelta
 
+import icons
+
 CST = timezone(timedelta(hours=8))
 
 # 报告的转化入口：看报告的人 → 仓库 → Star。
@@ -56,7 +58,9 @@ tbody tr:hover{background:#FDFCF9}
 .rk{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;
 border-radius:6px;background:#F0EEE9;color:#6E6C68;font-size:12px;font-weight:600}
 .rk1{background:#FFC72C;color:#292726}.rk2{background:#D9D7D1;color:#292726}.rk3{background:#E8B27E;color:#292726}
-.nm{font-weight:500}
+.pn{display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.ic{width:17px;height:17px;flex:none;display:inline-block;vertical-align:-3px}
+.card .lab .ic{width:16px;height:16px;vertical-align:-2px;margin-right:2px}
 .cat{font-size:11.5px;color:#8A8781;background:#F5F3EF;border-radius:5px;padding:1px 6px}
 .bar{position:relative;min-width:64px}
 .bar i{position:absolute;left:0;top:50%;transform:translateY(-50%);height:16px;
@@ -215,7 +219,8 @@ def _table(rows: list[dict], score_max: float, show_score: bool = True) -> str:
         body.append(
             "<tr>"
             f"<td>{_rank_badge(i)}</td>"
-            f'<td class="nm">{esc(r["name"])}</td>'
+            f'<td><span class="pn">{icons.for_category(r.get("category"))}'
+            f'{esc(r["name"])}</span></td>'
             f'<td><span class="cat">{esc(r["category"])}</span></td>'
             f'<td>¥{fmt(r["price"], 0)}</td>'
             f'<td>{fmt(r["kcal"], 0)}</td>'
@@ -256,7 +261,8 @@ def _category_cards(rankings: dict) -> str:
     for c in rankings["best_in_category"]:
         b = c["best"]
         cards.append(
-            f'<div class="card"><div class="lab">{esc(c["category"])} · 共 {c["count"]} 款</div>'
+            f'<div class="card"><div class="lab">{icons.for_category(c["category"])}'
+            f'{esc(c["category"])} · 共 {c["count"]} 款</div>'
             f'<div class="val">{esc(b["name"])}</div>'
             f'<div class="who">¥{fmt(b["price"], 0)} · {fmt(b["kcal"], 0)}kcal · 蛋白 '
             f'{fmt(b["protein"], 0)}g · 钠 {fmt(b["sodium"], 0)}mg · {fmt(b["score"], 1)} 分</div></div>'
@@ -300,6 +306,7 @@ def render(rankings: dict, meta: dict) -> str:
 <style>{CSS}</style>
 </head>
 <body>
+{icons.sprite()}
 <header><div class="wrap">
 <h1>麦当劳营养红黑榜</h1>
 <div class="sub">把营养数据和价格 join 起来 —— 你花的每一块钱，到底买到了多少克蛋白质？</div>
