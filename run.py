@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
@@ -142,6 +143,21 @@ def load_demo():
     return demo_data.load_demo(), "内置示例数据", {}
 
 
+def captured_at(args) -> str | None:
+    """数据采集时间，与页面生成时间分开。
+
+    --replay 时从快照文件名（nutrition_YYYYMMDD_HHMMSS.json）解析 —— 这才是数据真正
+    离开麦当劳服务器的时刻；实时模式就是此刻，与生成时间同义，无需单独标注；
+    示例数据没有采集时间。
+    """
+    if args.replay:
+        m = re.search(r"(\d{8})_(\d{6})", os.path.basename(args.replay[0]))
+        if m:
+            d, t = m.group(1), m.group(2)
+            return f"{d[:4]}-{d[4:6]}-{d[6:]} {t[:2]}:{t[2:4]}"
+    return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="生成麦当劳营养红黑榜报告")
     ap.add_argument("--demo", action="store_true", help="强制使用内置示例数据")
@@ -174,6 +190,10 @@ def main() -> int:
 
     rankings = rank.build_rankings(items)
     meta = {"count": len(items), "source": source, "demo": use_demo, "stats": stats}
+    # 「数据采集时间」与「页面生成时间」必须分开写。
+    # 只写「生成于 X」会被读成「数据在 X 拉的」—— 而线上产物是 10-09 午市快照的重放，
+    # 重跑一次页面生成时间就变，采集时间不变。在一份讲数据的榜单里这是硬伤。
+    meta["captured"] = captured_at(args)
 
     # 两个产物，各司其职：
     #   index.html  = 对比器，零摩擦的交互入口，负责「让人动手」

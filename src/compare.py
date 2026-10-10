@@ -60,6 +60,8 @@ background:#F7F5F1;border-radius:20px;padding:3px 9px 3px 5px}
 .lg b{font-weight:600;color:#292726;font-variant-numeric:tabular-nums}
 .ic{width:17px;height:17px;flex:none;display:inline-block;vertical-align:-3px}
 .lg .ic{width:15px;height:15px;vertical-align:0}
+.mm{font-size:11px;font-weight:400;color:#8A5A00;background:#FFF1D6;border-radius:4px;
+padding:0 5px;margin-left:6px;cursor:help}
 .verdict{background:#292726;color:#fff;border-radius:12px;padding:20px 22px;margin-bottom:18px}
 .verdict .lead{font-size:17px;font-weight:600;letter-spacing:-.2px;line-height:1.5}
 .verdict .why{font-size:13.5px;opacity:.82;margin-top:10px}
@@ -178,7 +180,9 @@ function render(){
   // 若用 it 取数，B 侧会渲染成「B / B」。
   function side(it, hi){
     return '<div class="side'+(hi?' hi':'')+'">' +
-      '<div class="nm">'+icx(it.ic)+'<span>'+it.name+'</span></div><div><span class="ct">'+it.category+'</span></div>' +
+      '<div class="nm">'+icx(it.ic)+'<span>'+it.name+'</span>'
+      + (it.match && it.match !== 'exact' ? '<span class="mm" title="规格推定：营养库与菜单名称不完全一致，已去掉规格修饰后匹配">规格推定</span>' : '')
+      + '</div><div><span class="ct">'+it.category+'</span></div>' +
       kv('价格', '¥'+pr(a.price), '¥'+pr(b.price), 'low') +
       kv('蛋白质', n1(a.protein)+'g', n1(b.protein)+'g', 'high') +
       kv('热量', n0(a.kcal), n0(b.kcal), 'low') +
@@ -223,6 +227,7 @@ __SPRITE__
 <div class="sub">选两款餐品 —— 贵的那款，你多花的钱到底买到了什么？</div>
 <div class="meta">
 <span>数据：__SOURCE__</span>
+__CAPTURED__
 <span>共 __COUNT__ 款</span>
 <span>生成于 __NOW__</span>
 <span>开源项目 <a href="__REPO__" target="_blank" rel="noopener">york0307/mcd-protein-value</a></span>
@@ -299,6 +304,17 @@ def _preset(rankings: dict) -> tuple[int, int]:
     return idx.get(best[1], 0), idx.get(best[2], min(1, len(items) - 1))
 
 
+_MATCH_TIP = ("规格推定：营养库与菜单名称不完全一致，"
+              "已去掉规格修饰后匹配，价格对应菜单同名单品")
+
+
+def _match_mark(r: dict) -> str:
+    """非精确匹配的餐品必须标出来 —— 榜单可以少收录，但不能悄悄错配。"""
+    if r.get("match") == "exact" or not r.get("match"):
+        return ""
+    return f'<span class="mm" title="{_MATCH_TIP}">规格推定</span>'
+
+
 def _legend(rankings: dict) -> str:
     """品类图例 —— 让图标有解释，顺带交代 20 款的构成。"""
     order: dict[str, int] = {}
@@ -315,7 +331,7 @@ def _legend(rankings: dict) -> str:
 def render_compare(rankings: dict, meta: dict) -> str:
     items = rankings["all"]
     keep = ("name", "category", "price", "kcal", "protein",
-            "sodium", "protein_per_yuan", "protein_density", "score")
+            "sodium", "protein_per_yuan", "protein_density", "score", "match")
     slim = []
     for x in items:
         row = {k: x.get(k, 0) for k in keep}
@@ -329,16 +345,20 @@ def render_compare(rankings: dict, meta: dict) -> str:
     for i, r in enumerate(rankings["red_list"], 1):
         rows.append(
             f"<tr><td>{i}</td>"
-            f'<td>{icons.for_category(r.get("category"))} {html.escape(str(r["name"]))}</td>'
+            f'<td>{icons.for_category(r.get("category"))} {html.escape(str(r["name"]))}'
+            f'{_match_mark(r)}</td>'
             f"<td>¥{fmt(r['price'], 0)}</td><td>{fmt(r['kcal'], 0)}</td>"
             f"<td>{fmt(r['protein'], 0)}g</td>"
             f"<td>{r['protein_density']:.1f}</td><td>{r['protein_per_yuan']:.2f}</td>"
             f"<td>{r['sodium']:.0f}mg</td></tr>")
 
     now = datetime.now(CST).strftime("%Y-%m-%d %H:%M")
+    captured = meta.get("captured")
     return (TEMPLATE
             .replace("__SPRITE__", icons.sprite())
             .replace("__LEGEND__", _legend(rankings))
+            .replace("__CAPTURED__",
+                     f"<span>采集于 {html.escape(str(captured))}</span>" if captured else "")
             .replace("__CSS__", CSS)
             .replace("__JS__", JS)
             .replace("__DATA__", json.dumps(payload, ensure_ascii=False))

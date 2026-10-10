@@ -60,6 +60,8 @@ tbody tr:hover{background:#FDFCF9}
 border-radius:6px;background:#F0EEE9;color:#6E6C68;font-size:12px;font-weight:600}
 .rk1{background:#FFC72C;color:#292726}.rk2{background:#D9D7D1;color:#292726}.rk3{background:#E8B27E;color:#292726}
 .pn{display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.mm{font-size:11px;font-weight:400;color:#8A5A00;background:#FFF1D6;border-radius:4px;
+padding:0 5px;margin-left:6px;cursor:help}
 .ic{width:17px;height:17px;flex:none;display:inline-block;vertical-align:-3px}
 .card .lab .ic{width:16px;height:16px;vertical-align:-2px;margin-right:2px}
 .cat{font-size:11.5px;color:#8A8781;background:#F5F3EF;border-radius:5px;padding:1px 6px}
@@ -202,6 +204,17 @@ def _insights(rankings: dict) -> str:
     )
 
 
+_MATCH_TIP = ("规格推定：营养库与菜单名称不完全一致，"
+              "已去掉规格修饰后匹配，价格对应菜单同名单品")
+
+
+def _match_mark(r: dict) -> str:
+    """非精确匹配的餐品必须标出来 —— 榜单可以少收录，但不能悄悄错配。"""
+    if r.get("match") == "exact" or not r.get("match"):
+        return ""
+    return f'<span class="mm" title="{_MATCH_TIP}">规格推定</span>'
+
+
 def _table(rows: list[dict], score_max: float, show_score: bool = True) -> str:
     head = ("<tr><th>#</th><th>餐品</th><th>分类</th><th>价格</th><th>热量</th>"
             "<th>蛋白质</th><th>蛋白密度</th><th>蛋白/元</th><th>钠</th>"
@@ -214,7 +227,7 @@ def _table(rows: list[dict], score_max: float, show_score: bool = True) -> str:
             "<tr>"
             f"<td>{_rank_badge(i)}</td>"
             f'<td><span class="pn">{icons.for_category(r.get("category"))}'
-            f'{esc(r["name"])}</span></td>'
+            f'{esc(r["name"])}{_match_mark(r)}</span></td>'
             f'<td><span class="cat">{esc(r["category"])}</span></td>'
             f'<td>¥{fmt(r["price"], 0)}</td>'
             f'<td>{fmt(r["kcal"], 0)}</td>'
@@ -308,6 +321,7 @@ def render(rankings: dict, meta: dict) -> str:
 <span>样本 {meta['count']} 款餐品</span>
 {cover}
 <span>数据源：{esc(meta['source'])}</span>
+{('<span>采集于 ' + esc(meta['captured']) + '</span>') if meta.get('captured') else ''}
 <span>生成于 {now}</span>
 <span>开源项目 <a href="{REPO_URL}" target="_blank" rel="noopener">york0307/mcd-protein-value</a></span>
 </div>
