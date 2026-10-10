@@ -12,6 +12,10 @@ from datetime import datetime, timezone, timedelta
 
 CST = timezone(timedelta(hours=8))
 
+# 报告的转化入口：看报告的人 → 仓库 → Star。
+# 榜单是「传播产物」，仓库是「转化终点」，两者必须互相可见。
+REPO_URL = "https://github.com/york0307/mcd-protein-value"
+
 CSS = """
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
@@ -73,6 +77,20 @@ font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .method ul{margin:6px 0 0 20px}
 .method li{margin-bottom:5px}
 footer{margin-top:40px;padding-top:20px;border-top:1px solid #E8E6E1;font-size:12.5px;color:#8A8781}
+footer a{color:#6E6C68}
+header a{color:#fff;text-decoration:underline;text-underline-offset:2px}
+.cta{background:#FFF8E7;border:1px solid #F0C75E;border-radius:12px;padding:20px 22px}
+.cta h3{font-size:16px;font-weight:600;margin-bottom:6px;color:#292726}
+.cta p{font-size:13.5px;color:#6B4E00;margin-bottom:14px}
+.cta .btns{display:flex;gap:10px;flex-wrap:wrap}
+.cta a{display:inline-block;text-decoration:none;font-size:13.5px;font-weight:500;
+border-radius:8px;padding:9px 16px;border:1px solid #292726;color:#292726;background:#fff}
+.cta a:hover{background:#F5F3EF}
+.cta a.pri{background:#292726;color:#fff}
+.cta a.pri:hover{background:#000}
+.cta .tip{font-size:12.5px;color:#8A6A00;margin-top:14px;padding-top:12px;border-top:1px dashed #E8C87A}
+.cta .tip code{background:#FFF1D6;border-radius:4px;padding:1.5px 6px;font-size:12px;
+font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 @media(max-width:640px){h1{font-size:23px}.card .val{font-size:22px}}
 @media print{header{background:#DA291C!important;-webkit-print-color-adjust:exact}
 .tab{display:none}.pane{display:block!important;page-break-inside:avoid}}
@@ -290,6 +308,7 @@ def render(rankings: dict, meta: dict) -> str:
 {cover}
 <span>数据源：{esc(meta['source'])}</span>
 <span>生成于 {now}</span>
+<span>开源项目 <a href="{REPO_URL}" target="_blank" rel="noopener">york0307/mcd-protein-value</a></span>
 </div>
 </div></header>
 
@@ -351,10 +370,24 @@ def render(rankings: dict, meta: dict) -> str:
 <code>query-meals</code> 两份数据 join 起来，才能算出「每元蛋白质」——这是单看任何一份数据都得不出的结论。</p>
 </div>
 
+<h2>这份榜单是开源的</h2>
+<p class="h2note">数据不是手工录入的静态表，全部来自麦当劳官方 MCP 实时接口。</p>
+<div class="cta">
+<h3>觉得有用，给个 Star ⭐</h3>
+<p>本项目参加 2026 麦当劳程序员创意开发大赛，榜单排名由仓库的公开 Star 数决定 —— 你的一颗 Star 就是一票。</p>
+<div class="btns">
+<a class="pri" href="{REPO_URL}" target="_blank" rel="noopener">⭐ Star 这个项目</a>
+<a href="{REPO_URL}#readme" target="_blank" rel="noopener">查看源码与接入方式</a>
+</div>
+<div class="tip">价格随门店和时段浮动。想看你所在城市的榜单，clone 仓库、配好 Token 后跑
+<code>python run.py --city 上海</code> 即可重新生成；没有 Token 也能用
+<code>python run.py --demo</code> 先跑通全链路。</div>
+</div>
+
 <footer>
-本页由开源项目 <b>mcd-protein-value</b> 自动生成，为麦当劳程序员节创意开发大赛参赛作品，
-<b>非麦当劳官方产品</b>。数据仅供参考，不构成医疗或营养专业建议；
-餐品信息、价格及供应状态以麦当劳官方渠道的实时结果为准。
+本页由开源项目 <b><a href="{REPO_URL}" target="_blank" rel="noopener">mcd-protein-value</a></b> 自动生成，
+为麦当劳程序员节创意开发大赛参赛作品，<b>非麦当劳官方产品</b>。
+数据仅供参考，不构成医疗或营养专业建议；餐品信息、价格及供应状态以麦当劳官方渠道的实时结果为准。
 </footer>
 </div>
 <script>{JS}</script>

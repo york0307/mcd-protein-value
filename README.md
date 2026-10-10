@@ -108,6 +108,7 @@ python run.py --store-code 1990346             # 或直接指定门店
 | `--demo` | 强制使用内置示例数据 |
 | `--city` / `--keyword` | 门店搜索（默认 南京 / 麦当劳，也可用环境变量 `MCD_CITY`） |
 | `--store-code` | 直接指定门店编码，跳过搜索 |
+| `--replay NUTRI MENU` | 从 `data/snapshot/` 的原始响应快照重放，不调用 MCP（见下） |
 | `--dump-raw` | 保存 MCP 原始响应到 `data/raw/`，用于排查结构变化 |
 | `--out PATH` | 指定报告输出路径 |
 
@@ -120,6 +121,21 @@ python run.py --store-code 1990346             # 或直接指定门店
 
 这不是 bug —— 下午三点拉不到早餐数据是正常的。
 程序**宁可少收录也不错配**，原因见下。
+
+### 菜单随时段变化，所以线上报告用快照重放
+
+早市菜单只有早餐（实测 83 款、匹配 18 款，冠军是早餐堡），午市才同时有正餐和早餐
+（124 款、匹配 20 款）。若每次都实时重跑，对外发布的报告会随时间不断变形，
+「巨无霸 vs 双层吉士汉堡」这类结论在早市根本拉不到。
+
+所以线上报告固定用午市快照重放，可复现：
+
+```bash
+python run.py --replay data/snapshot/nutrition_20261009_145325.json \
+                       data/snapshot/menu_20261009_145524.json
+```
+
+想看别的时段，正常 `python run.py` 即可，报告会注明实际拉取时间。
 
 ### 为什么不做模糊匹配
 
@@ -170,6 +186,7 @@ python run.py --store-code 1990346             # 或直接指定门店
 │   ├── inspect_tools.py       导出 Tool 的 inputSchema
 │   └── probe.py               原始响应探测
 ├── output/index.html          生成的报告
+├── data/snapshot/             已归档的 MCP 原始响应（可用 --replay 复现线上报告）
 ├── docs/checklist.md          报名前自查清单
 └── CONTEST_DECLARATION.md     参赛声明（官方原文，未修改）
 ```

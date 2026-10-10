@@ -13,6 +13,10 @@
 
     # 保存 MCP 原始响应，便于排查服务端结构变化
     python run.py --dump-raw
+
+    # 从快照重放（午市样本最全，线上报告固定用它，避免早/晚市样本变形）
+    python run.py --replay data/raw/nutrition_20261009_145325.json \
+                           data/raw/probe_meals_20261009_145524.json
 """
 
 from __future__ import annotations
@@ -104,6 +108,34 @@ def load_live(dump: bool, city: str, keyword: str, store_code: str | None):
     return merged, f"麦当劳 MCP 实时数据 · {store_name}", stats
 
 
+def load_replay(nutri_path: str, menu_path: str, store_name: str):
+    """从 --dump-raw 保存的原始响应重放，不重新调用 MCP。
+
+    用途：门店菜单随时段变化（早市只有早餐），若每次都重跑线上报告会不断变形。
+    用快照重放可以把对外发布的报告锁定在某一次有代表性的拉取，且结果可复现。
+    """
+    import json
+
+    with open(nutri_path, encoding="utf-8") as f:
+        nutri_raw = json.load(f)
+    with open(menu_path, encoding="utf-8") as f:
+        menu_raw = json.load(f)
+
+    nutri = mcd_parse.parse_nutrition(nutri_raw)
+    menu = mcd_parse.parse_menu(menu_raw)
+    print(f"[✓] 快照重放：营养 {len(nutri)} 条 / 菜单 {len(menu)} 条")
+    if not nutri or not menu:
+        raise RuntimeError("快照解析后为空，请确认文件是 --dump-raw / probe 保存的原始 MCP 响应。")
+
+    merged, unmatched, stats = mcd_parse.join_by_name(nutri, menu)
+    print(f"[✓] 精确匹配 {stats['matched']} 条"
+          f"（套餐/周边排除 {stats['menu_combo_excluded']} 条，未匹配 {stats['unmatched']} 条）")
+    if not merged:
+        raise RuntimeError("快照数据无法按名称匹配，无法计算性价比。")
+
+    return merged, f"麦当劳 MCP 实时数据快照 · {store_name}", stats
+
+
 def load_demo():
     print("[!] 未检测到 MCD_MCP_TOKEN，使用内置示例数据（非官方实时数据）")
     return demo_data.load_demo(), "内置示例数据", {}
@@ -116,15 +148,21 @@ def main() -> int:
     ap.add_argument("--keyword", default=DEFAULT_KEYWORD, help="门店搜索关键词")
     ap.add_argument("--store-code", help="直接指定门店编码，跳过搜索")
     ap.add_argument("--dump-raw", action="store_true", help="保存 MCP 原始响应")
+    ap.add_argument("--replay", nargs=2, metavar=("NUTRI", "MENU"),
+                    help="从 data/raw/ 中的原始响应快照重放，不调用 MCP")
+    ap.add_argument("--store-name", default="麦当劳南京新百餐厅",
+                    help="配合 --replay 使用，写入报告的数据源说明")
     ap.add_argument("--out", default="output/index.html", help="报告输出路径")
     args = ap.parse_args()
 
     has_token = bool(os.environ.get("MCD_MCP_TOKEN", "").strip())
-    use_demo = args.demo or not has_token
+    use_demo = args.demo or (not has_token and not args.replay)
 
     try:
         if use_demo:
             items, source, stats = load_demo()
+        elif args.replay:
+            items, source, stats = load_replay(args.replay[0], args.replay[1], args.store_name)
         else:
             items, source, stats = load_live(
                 args.dump_raw, args.city, args.keyword, args.store_code)
