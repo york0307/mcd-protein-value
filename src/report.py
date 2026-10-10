@@ -11,6 +11,7 @@ import html
 from datetime import datetime, timezone, timedelta
 
 import icons
+from numfmt import fmt
 
 CST = timezone(timedelta(hours=8))
 
@@ -118,13 +119,6 @@ def esc(v) -> str:
     return html.escape(str(v if v is not None else ""))
 
 
-def fmt(v, nd: int = 1) -> str:
-    try:
-        return f"{float(v):.{nd}f}"
-    except (TypeError, ValueError):
-        return "-"
-
-
 def bar(value: float, maximum: float, text: str) -> str:
     pct = 0 if maximum <= 0 else max(4, min(100, value / maximum * 100))
     return f'<div class="bar"><i style="width:{pct:.0f}%"></i><span>{esc(text)}</span></div>'
@@ -181,7 +175,7 @@ def _insights(rankings: dict) -> str:
         if pair:
             gap, cheap, dear = pair
             dk = dear["kcal"] - cheap["kcal"]
-            extra = f'，还多摄入 {dk:.0f} 大卡' if dk > 0 else ""
+            extra = f'，还多摄入 {fmt(dk, 0)} 大卡' if dk > 0 else ""
             out.append(("同蛋白不同价",
                         f'<b>{esc(cheap["name"])}</b>（¥{fmt(cheap["price"], 0)}）与 '
                         f'<b>{esc(dear["name"])}</b>（¥{fmt(dear["price"], 0)}）蛋白质都是 '

@@ -24,6 +24,7 @@ import json
 from datetime import datetime, timezone, timedelta
 
 import icons
+from numfmt import fmt
 
 CST = timezone(timedelta(hours=8))
 REPO_URL = "https://github.com/york0307/mcd-protein-value"
@@ -114,6 +115,8 @@ function fill(sel, keep){
 }
 fill(A, defA); fill(B, defB);
 
+// 这里的 Math.round 必须与 numfmt.r0 保持同一套舍入（半进位）。
+// 改了它而没改 numfmt，同一款餐品会在报告和对比器里显示两个价。
 function n0(v){ return Math.round(v); }
 function n1(v){ return (Math.round(v*10)/10).toFixed(1); }
 function n2(v){ return (Math.round(v*100)/100).toFixed(2); }
@@ -327,7 +330,8 @@ def render_compare(rankings: dict, meta: dict) -> str:
         rows.append(
             f"<tr><td>{i}</td>"
             f'<td>{icons.for_category(r.get("category"))} {html.escape(str(r["name"]))}</td>'
-            f"<td>¥{r['price']:.0f}</td><td>{r['kcal']:.0f}</td><td>{r['protein']:.0f}g</td>"
+            f"<td>¥{fmt(r['price'], 0)}</td><td>{fmt(r['kcal'], 0)}</td>"
+            f"<td>{fmt(r['protein'], 0)}g</td>"
             f"<td>{r['protein_density']:.1f}</td><td>{r['protein_per_yuan']:.2f}</td>"
             f"<td>{r['sodium']:.0f}mg</td></tr>")
 
