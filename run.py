@@ -27,6 +27,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
+import compare  # noqa: E402
 import demo_data  # noqa: E402
 import mcd_parse  # noqa: E402
 import rank  # noqa: E402
@@ -173,9 +174,17 @@ def main() -> int:
 
     rankings = rank.build_rankings(items)
     meta = {"count": len(items), "source": source, "demo": use_demo, "stats": stats}
-    path = report.write_report(rankings, meta, args.out)
 
-    print(f"\n[✓] 报告已生成：{path}")
+    # 两个产物，各司其职：
+    #   index.html  = 对比器，零摩擦的交互入口，负责「让人动手」
+    #   report.html = 完整榜单报告，负责「让人信服」
+    # 两者同源同数据，说法必须一致。
+    out_dir = os.path.dirname(args.out) or "."
+    report_path = report.write_report(rankings, meta, os.path.join(out_dir, "report.html"))
+    cmp_path = compare.write_compare(rankings, meta, args.out)
+
+    print(f"\n[✓] 对比器：{cmp_path}")
+    print(f"[✓] 完整报告：{report_path}")
     print(f"    样本 {len(items)} 款 · 数据源：{source}")
     if rankings["all"]:
         b = rankings["all"][0]

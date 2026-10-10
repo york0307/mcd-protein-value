@@ -9,8 +9,8 @@
 [![Python](https://img.shields.io/badge/python-3.9+-blue)](./run.py)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-**🔴 [在线看榜单 → york0307.github.io/mcd-protein-value](https://york0307.github.io/mcd-protein-value/)**
-（无需 Token、无需登录，点开即看真实门店数据）
+**🔴 [在线玩对比器 →](https://york0307.github.io/mcd-protein-value/)　·　[完整榜单报告 →](https://york0307.github.io/mcd-protein-value/report.html)**
+（无需 Token、无需登录，点开即用真实门店数据）
 
 </div>
 
@@ -32,6 +32,19 @@
 > **反直觉的地方**：巨无霸（¥26.5）蛋白 27g、钠 1017mg；
 > 而便宜 3.5 块的双层吉士汉堡（¥23）蛋白同样是 27g。
 > 多花的钱买到的是热量，不是蛋白质。
+
+## 价格错觉对比器
+
+榜单是**通用答案**，所有人看到同一张表，看完就走。
+对比器给你**属于你的答案** —— 自己选两款，得到针对这次选择的结论：
+
+> 贵的那款多花 ¥6，蛋白质反而少 1g。多花的钱买的不是蛋白质。还多摄入 133 大卡。
+
+https://york0307.github.io/mcd-protein-value/
+
+- 纯前端，**数据内嵌**，零 Token（浏览器不能直连 MCP：CORS + 密钥会暴露在前端）
+- 自包含单文件，零外部依赖
+- 「给我看最反直觉的一对」按钮，用与报告同一条判据（蛋白 ±1g 内价差最大）自动选
 
 ## 为什么需要它
 
@@ -179,14 +192,16 @@ python run.py --replay data/snapshot/nutrition_20261009_145325.json \
 │   ├── mcd_client.py          MCP JSON-RPC 客户端（含 SSE 解包）
 │   ├── mcd_parse.py           响应解析（markdown 包裹 + 自定义表格）+ 双向唯一匹配
 │   ├── rank.py                指标计算 + 榜单排序
-│   ├── report.py              自包含 HTML 报告生成
+│   ├── report.py              完整榜单报告（report.html）
+│   ├── compare.py             价格错觉对比器（index.html，纯前端交互）
 │   └── demo_data.py           内置示例数据（无 Token 时跑通链路）
 ├── scripts/
 │   ├── check_mcp.py           连通性自检
 │   ├── inspect_tools.py       导出 Tool 的 inputSchema
 │   └── probe.py               原始响应探测
-├── output/index.html          生成的报告
-├── data/snapshot/             已归档的 MCP 原始响应（可用 --replay 复现线上报告）
+├── output/index.html          价格错觉对比器（交互入口）
+├── output/report.html         完整榜单报告
+├── data/snapshot/             已归档的 MCP 原始响应（可用 --replay 复现线上产物）
 ├── docs/checklist.md          报名前自查清单
 └── CONTEST_DECLARATION.md     参赛声明（官方原文，未修改）
 ```
