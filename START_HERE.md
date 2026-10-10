@@ -88,12 +88,12 @@ python run.py --dump-raw               # 同时保存原始响应用到 data/raw
 
 ---
 
-## 上传 GitHub
+## 上传 GitHub ✅ 已完成
+
+仓库：https://github.com/york0307/mcd-protein-value （Public）
 
 ```bash
-git init
-git add -A
-git commit -m "feat: 麦当劳营养红黑榜 - 蛋白质性价比计算器"
+git init && git add -A && git commit -m "..."
 git branch -M main
 git remote add origin https://github.com/york0307/mcd-protein-value.git
 git push -u origin main
@@ -104,6 +104,26 @@ git push -u origin main
 ```bash
 grep -rInE "(Bearer [A-Za-z0-9_-]{16,}|sk-[A-Za-z0-9]{20,}|token[\"'=: ]+[A-Za-z0-9_-]{16,})" . --exclude-dir=.git
 ```
+
+> 注：本机 `gh` CLI 不可用（`universal-user-agent` 调 powershell 报 `spawnSync EBUSY`），
+> 且无 SSH 密钥 → 走 HTTPS + PAT。PAT 不要写进 remote URL，用一次性 URL 推完即弃。
+
+### 更新在线报告（gh-pages 孤儿分支）
+
+Pages 从 `gh-pages` 分支根目录发布（GitHub 的 legacy 模式只允许 `/` 或 `/docs`，不支持 `/output`）。
+重新生成报告后同步：
+
+```bash
+cp output/index.html ./index.html && touch .nojekyll
+git checkout --orphan gh-pages
+git rm -rf --cached . 
+git add index.html .nojekyll
+git commit -m "docs: 更新报告"
+git push -f origin gh-pages
+git checkout -f main && rm -f index.html .nojekyll
+```
+
+线上地址：https://york0307.github.io/mcd-protein-value/
 
 ---
 
@@ -125,7 +145,7 @@ grep -rInE "(Bearer [A-Za-z0-9_-]{16,}|sk-[A-Za-z0-9]{20,}|token[\"'=: ]+[A-Za-z
 
 这个项目的 Star 增长点在于**报告本身可以被转发**：
 
-1. 把 `output/index.html` 部署到 GitHub Pages（Settings → Pages → 选 main 分支 `/output` 目录）
+1. 在线报告已上线：https://york0307.github.io/mcd-protein-value/
 2. 截图「三个反直觉发现」+「红黑榜」发小红书 / 即刻 / V2EX
 3. README 首屏的结论表格本身就是可传播内容
 

@@ -9,6 +9,9 @@
 [![Python](https://img.shields.io/badge/python-3.9+-blue)](./run.py)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
+**🔴 [在线看榜单 → york0307.github.io/mcd-protein-value](https://york0307.github.io/mcd-protein-value/)**
+（无需 Token、无需登录，点开即看真实门店数据）
+
 </div>
 
 ---
@@ -134,7 +137,8 @@ python run.py --store-code 1990346             # 或直接指定门店
 
 ## 报告长什么样
 
-生成的 `output/index.html` 是**自包含单文件**（33KB，零外部依赖），可直接托管到 GitHub Pages：
+生成的 `output/index.html` 是**自包含单文件**（34KB，零外部依赖），已部署到 GitHub Pages：
+**https://york0307.github.io/mcd-protein-value/**
 
 - 结论卡片 + 三个反直觉发现
 - 红榜 Top 8 / 黑榜 Top 8
